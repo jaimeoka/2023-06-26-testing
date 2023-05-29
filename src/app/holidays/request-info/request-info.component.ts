@@ -8,7 +8,6 @@ import {
   signal,
 } from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule } from '@angular/forms';
-import { of } from 'rxjs';
 import { AsyncPipe, NgIf, NgStyle } from '@angular/common';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
@@ -18,6 +17,8 @@ import { RouterLink } from '@angular/router';
 import { HolidayCardComponent } from '../holiday-card/holiday-card.component';
 import { validateAddress } from '@app/shared';
 import { HolidaysRepository } from '../+state';
+import { AddressLookuper } from '@app/shared/address-lookuper.service';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-request-info',
@@ -41,7 +42,7 @@ export class RequestInfoComponent implements OnInit {
   @Input() id: string | undefined;
   @Output() brochureSent = new EventEmitter<string>();
 
-  #lookuper = { lookup: (query: string) => of(Boolean(query)) };
+  #lookuper = inject(AddressLookuper);
   #formBuilder = inject(NonNullableFormBuilder);
   #repo = inject(HolidaysRepository);
 
@@ -60,8 +61,8 @@ export class RequestInfoComponent implements OnInit {
   }
 
   async search() {
-    const isValid = await this.#lookuper.lookup(
-      this.formGroup.getRawValue().address
+    const isValid = await firstValueFrom(
+      this.#lookuper.lookup(this.formGroup.getRawValue().address)
     );
     this.lookupResult.set(isValid ? 'Brochure sent' : 'Address not found');
   }
