@@ -11,8 +11,24 @@ import {
 import { fakeAsync, tick } from '@angular/core/testing';
 import { assertType } from './assert-type';
 import { createMock } from '@testing-library/angular/jest-utils';
+import * as angularCore from '@angular/core';
 
-describe('Address Lookuper', () => {
+describe('Address Lookuper with Spy', () => {
+  const spy = jest.spyOn(angularCore, 'inject');
+
+  afterEach(() => {
+    spy.mockReset();
+  });
+
+  afterAll(() => {
+    spy.mockRestore();
+  });
+
+  const setup = (httpClient: unknown) => {
+    spy.mockReturnValue(httpClient);
+    return new AddressLookuper();
+  };
+
   for (const { query, expected, response } of [
     { query: 'Domgasse 5', response: ['Domgasse 5'], expected: true },
     { query: 'Domgasse 15', response: [], expected: false },
@@ -21,7 +37,8 @@ describe('Address Lookuper', () => {
       const httpClient = assertType<HttpClient>({
         get: () => scheduled([response], asyncScheduler),
       });
-      const lookuper = new AddressLookuper(httpClient);
+
+      const lookuper = setup(httpClient);
 
       lookuper.lookup(query).subscribe((isValid) => {
         expect(isValid).toBe(expected);
@@ -35,7 +52,7 @@ describe('Address Lookuper', () => {
     const httpClient = { get: jest.fn() };
     httpClient.get.mockReturnValue(of([]));
 
-    const lookuper = new AddressLookuper(assertType<HttpClient>(httpClient));
+    const lookuper = setup(httpClient);
     lookuper.lookup('Domgasse 5');
 
     expect(httpClient.get).toHaveBeenCalledWith(
@@ -58,7 +75,7 @@ describe('Address Lookuper', () => {
       },
     });
 
-    const lookuper = new AddressLookuper(httpClientStub);
+    const lookuper = setup(httpClientStub);
     const result = await firstValueFrom(lookuper.lookup('Domgasse 5'));
 
     expect(result).toBe(true);
@@ -68,7 +85,7 @@ describe('Address Lookuper', () => {
     const httpClient = createMock(HttpClient);
     httpClient.get.mockReturnValue(of([]));
 
-    const lookuper = new AddressLookuper(httpClient);
+    const lookuper = setup(httpClient);
     lookuper.lookup('Domgasse 5');
 
     expect(httpClient.get).toHaveBeenCalledWith(
@@ -84,7 +101,7 @@ describe('Address Lookuper', () => {
       get: jest.fn<Observable<undefined[]>, [string, { params: HttpParams }]>(),
     };
     httpClient.get.mockReturnValue(of([]));
-    const lookuper = new AddressLookuper(assertType<HttpClient>(httpClient));
+    const lookuper = setup(httpClient);
     lookuper.lookup('Domgasse 5');
 
     const [url, { params }] = httpClient.get.mock.calls[0];
@@ -98,7 +115,7 @@ describe('Address Lookuper', () => {
     const httpClient = createMock(HttpClient);
     httpClient.get.mockReturnValue(of([]));
 
-    const lookuper = new AddressLookuper(httpClient);
+    const lookuper = setup(httpClient);
     expect(lookuper.counter).toBe(0);
     lookuper.lookup('Domgasse');
     expect(lookuper.counter).toBe(1);
