@@ -1,24 +1,20 @@
-import { inject, Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
-import { map } from 'rxjs/operators';
-import { Observable } from 'rxjs';
+import { Injectable } from '@angular/core';
 
 @Injectable({ providedIn: 'root' })
 export class AddressLookuper {
-  #httpClient = inject(HttpClient);
+  #addresses: string[];
 
+  constructor(addressSupplier: () => string[]) {
+    this.#addresses = addressSupplier();
+  }
   #counter = 0;
 
   get counter() {
     return this.#counter;
   }
 
-  lookup(query: string): Observable<boolean> {
+  lookup(query: string): boolean {
     this.#counter++;
-    return this.#httpClient
-      .get<undefined[]>('https://nominatim.openstreetmap.org/search.php', {
-        params: new HttpParams().set('q', query).set('format', 'jsonv2'),
-      })
-      .pipe(map((addresses) => addresses.length > 0));
+    return this.#addresses.some((address) => query.startsWith(address));
   }
 }
