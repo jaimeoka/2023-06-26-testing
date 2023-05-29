@@ -21,7 +21,6 @@
           data-testid="ri-search"
           mat-raised-button
           type="submit"
-          [disabled]="formGroup.invalid"
         >
           Send
         </button>
@@ -36,9 +35,4 @@
       <span *ngIf="lookupResult()">{{ lookupResult() }}</span>
     </p>
   </div>
-  <app-holiday-card
-    *ngIf="holiday() as value"
-    [holiday]="value"
-    [requestBrochure]="false"
-  ></app-holiday-card>
 </div>
