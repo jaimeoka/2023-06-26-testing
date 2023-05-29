@@ -21,8 +21,16 @@ declare global {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     interface Chainable<Subject> {
       mount: typeof mount;
+      testid: JQuery<HTMLElement>;
     }
   }
 }
 
 Cypress.Commands.add('mount', mount);
+Cypress.Commands.addQuery('testid', (testid: string) => {
+  const getFn = cy.now(
+    'get',
+    `[data-testid=${testid}]`
+  ) as () => JQuery<HTMLElement>;
+  return () => getFn();
+});
