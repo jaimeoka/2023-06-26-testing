@@ -15,9 +15,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
 import { RouterLink } from '@angular/router';
 import { HolidayCardComponent } from '../holiday-card/holiday-card.component';
-import { validateAddress } from '@app/shared';
+import { AddressLookuper, validateAddress } from '@app/shared';
 import { HolidaysRepository } from '../+state';
-import { AddressLookuper } from '@app/shared/address-lookuper.service';
 
 @Component({
   selector: 'app-request-info',
