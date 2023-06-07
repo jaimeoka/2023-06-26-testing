@@ -10,8 +10,8 @@ import { HttpClient } from '@angular/common/http';
 
 describe('Request Info Component', () => {
   for (const { message, response } of [
-    { message: 'Brochure sent', response: [true] },
     { message: 'Address not found', response: [] },
+    { message: 'Brochure sent', response: [true] },
   ]) {
     it(`should intercept the network and return ${response} for ${message}`, () => {
       const httpClient = { get: () => scheduled([response], asyncScheduler) };

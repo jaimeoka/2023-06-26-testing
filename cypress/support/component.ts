@@ -1,4 +1,5 @@
 import { mount } from 'cypress/angular';
+import Chainable = Cypress.Chainable;
 // ***********************************************************
 // This example support/component.ts is processed and
 // loaded automatically before your test files.
@@ -28,9 +29,6 @@ declare global {
 
 Cypress.Commands.add('mount', mount);
 Cypress.Commands.addQuery('testid', (testid: string) => {
-  const getFn = cy.now(
-    'get',
-    `[data-testid=${testid}]`
-  ) as () => JQuery<HTMLElement>;
+  const getFn = cy.now('get', `[data-testid=${testid}]`) as () => Chainable;
   return () => getFn();
 });
