@@ -1,8 +1,6 @@
 - [1: HolidayCard in Storybook](#1-holidaycard-in-storybook)
 - [2: HolidayCard Variations](#2-holidaycard-variations)
-- [3: Visual Regression with Storybook](#3-visual-regression-with-storybook)
-- [4: Bonus - Visual Regression with Cypress](#4-bonus---visual-regression-with-cypress)
-
+- [3: Visual Regression with Storybook \& Playwright](#3-visual-regression-with-storybook--playwright)
 
 # 1: HolidayCard in Storybook
 
@@ -10,7 +8,7 @@
 
 2. Open `http://localhost:4400` and verify that Storybook shows up with a rendered HolidayCard
 
-3. Open **/apps/eternal/src/app/holidays/holiday-card/holiday-card.component.stories.ts** and change the values of the properties `title`, `description`, `imageUrl` to:
+3. Open **/src/app/holidays/holiday-card/holiday-card.component.stories.ts** and change the values of the properties `title`, `description`, `imageUrl` to:
 
 ```json
 {
@@ -24,22 +22,21 @@
 
 # 2: HolidayCard Variations
 
-1. In **/apps/eternal/src/app/holidays/holiday-card/holiday-card.component.stories.ts**, create a factory method along default values for the story:
+1. In **/src/app/holidays/holiday-card/holiday-card.component.stories.ts**, create a factory method along default values for the story:
 
 ```typescript
 const defaultHoliday: Holiday = {
   id: 1,
   title: 'Wien / Vienna',
   teaser: 'Dive into the capital of the Habsburg empire',
-  imageUrl: '/assets/vienna.jpg',
-  description:
-    'With a population of almost 2 million, Vienna is the second largest German-speaking city and breathes history in every corner.',
+  imageUrl: 'vienna.jpg',
+  description: 'With a population of almost 2 million, Vienna is the second largest German-speaking city and breathes history in every corner.',
   typeId: 1,
   durationInDays: 7,
   minCount: 5,
   maxCount: 15,
   onSale: false,
-  soldOut: false
+  soldOut: false,
 };
 
 function createStory(holiday: Partial<Holiday> = {}) {
@@ -53,15 +50,13 @@ function createStory(holiday: Partial<Holiday> = {}) {
 export const Minimal = createStory({
   title: 'Wien',
   teaser: 'Teaser',
-  description: 'Description'
+  description: 'Description',
 });
 
 export const Overflown = createStory({
   title: 'A very long city name which does not fit within a line',
-  teaser:
-    'This is also a very long teaser text which surely does not fit within two lines. The 3rd line is hidden',
-  description:
-    'Eventually also an extremly long description where we simply have to limit the amount of lines to a maximum of three. We are still continuing here with some further text.'
+  teaser: 'This is also a very long teaser text which surely does not fit within two lines. The 3rd line is hidden',
+  description: 'Eventually also an extremly long description where we simply have to limit the amount of lines to a maximum of three. We are still continuing here with some further text.',
 });
 
 export const SoldOut = createStory({ soldOut: true });
@@ -70,11 +65,11 @@ export const Empty = createStory({
   title: '',
   teaser: '',
   description: '',
-  imageUrl: ''
+  imageUrl: '',
 });
 
 export const TinyImage = createStory({
-  imageUrl: '/assets/vienna-small.jpg'
+  imageUrl: 'vienna-small.jpg',
 });
 
 export const OnSale = createStory({ onSale: true });
@@ -82,73 +77,29 @@ export const OnSale = createStory({ onSale: true });
 export const SaleAndSold = createStory({ onSale: true, soldOut: true });
 ```
 
-# 3: Visual Regression with Storybook
+# 3: Visual Regression with Storybook & Playwright
 
-Write a VR test that screenshots all HolidayCard variations from Storybook. This time though, run them against a builded Storybook instance. Run following commands sequentially:
+Write a Visual Regression test with Playwright, where you check against stories of HolidaysCard.
 
-1. `npm run storybook:build`
-2. `npm run storybook:build:run`
+You don't have to configure Playwright. That's already done.
 
-Storybook will run on port 5000.
-
-# 4: Bonus - Visual Regression with Cypress
-
-1. Setup the required plugin:
-
-**apps/eternal-e2e/cypress.json**
-
-Add the `cypress-plugin-snapshots` configuration to the `env` property.
-
-```json
-{
-  "env": {
-    ...
-    "cypress-plugin-snapshots": {
-      "imageConfig": {
-        "threshold": 0
-      }
-    }
-  }
-}
-```
-
-**apps/eternal-e2e/tsconfig.e2e.json**
-
-The property `compiler.types` should have the following value `"types": ["cypress", "node", "cypress-plugin-snapshots"]`.
-
-**apps/eternal-e2e/src/support/index.js**
-
-Append the following line
-
-```javascript
-import 'cypress-plugin-snapshots/commands';
-```
-
-**apps/eternal-e2e/src/plugins/index.js**
-
-Replace the existing `module.exports` with
-
-```javascript
-const { initPlugin } = require('cypress-plugin-snapshots/plugin');
-// eslint-disable-next-line no-unused-vars
-module.exports = (on, config) => {
-  initPlugin(on, config);
-};
-```
-
-2. Write the test
+You have to modify the existing test in **/tests/visual-regression.spec.ts**.
 
 <details>
 <summary>Show Solution</summary>
 <p>
 
-**apps/eternal-e2e/src/integration/holiday-card.spec.ts**
+**tests/visual-regression.spec.ts**
 
 ```typescript
-it('should do visual regression against the holidaycard', () => {
-  cy.visit('http://localhost:4400/iframe?id=eternal-holidaycard--default&viewMode=story');
-  cy.document().toMatchImageSnapshot();
-});
+import { expect, test } from '@playwright/test';
+
+for (const story of ['default', 'minimal', 'overflown', 'sold-out', 'empty', 'tiny-image', 'on-sale', 'sale-and-sold']) {
+  test(`visual regression for ${story}`, async ({ page }) => {
+    await page.goto(`http://localhost:4400/iframe.html?id=eternal-holiday-card--${story}&viewMode=story`);
+    await expect(page).toHaveScreenshot();
+  });
+}
 ```
 
 </p>
