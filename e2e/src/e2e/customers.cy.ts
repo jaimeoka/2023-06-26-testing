@@ -10,11 +10,19 @@ describe('init', () => {
 
   it('should rename Latitia to Laetitia', () => {
     cy.get('[data-testid=btn-customers]').click();
-    cy.contains('[data-testid=row-customer]', 'Latitia').find('[data-testid=btn-edit]').click();
-    cy.get('[data-testid=inp-firstname]').should('have.value', 'Latitia').clear().type('Laetitia');
+    cy.contains('[data-testid=row-customer]', 'Latitia')
+      .find('[data-testid=btn-edit]')
+      .click();
+    cy.get('[data-testid=inp-firstname]')
+      .should('have.value', 'Latitia')
+      .clear()
+      .type('Laetitia');
     cy.get('[data-testid=btn-submit]').click();
 
-    cy.get('[data-testid=row-customer]').should('contain.text', 'Laetitia Bellitissa');
+    cy.get('[data-testid=row-customer]').should(
+      'contain.text',
+      'Laetitia Bellitissa'
+    );
   });
 
   it('should add a new customer', () => {
