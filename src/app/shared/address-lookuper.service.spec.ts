@@ -8,26 +8,20 @@ import {
   of,
   scheduled,
 } from 'rxjs';
-import { fakeAsync, tick } from '@angular/core/testing';
+import { fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { assertType } from './assert-type';
 import { createMock } from '@testing-library/angular/jest-utils';
-import * as angularCore from '@angular/core';
 
-describe('Address Lookuper with Spy', () => {
-  const spy = jest.spyOn(angularCore, 'inject');
-
-  afterEach(() => {
-    spy.mockReset();
-  });
-
-  afterAll(() => {
-    spy.mockRestore();
-  });
-
-  const setup = (httpClient: unknown) => {
-    spy.mockReturnValue(httpClient);
-    return new AddressLookuper();
-  };
+describe('Address Lookuper', () => {
+  const setup = (httpClient: HttpClient): AddressLookuper =>
+    TestBed.configureTestingModule({
+      providers: [
+        {
+          provide: HttpClient,
+          useValue: httpClient,
+        },
+      ],
+    }).inject(AddressLookuper);
 
   for (const { query, expected, response } of [
     { query: 'Domgasse 5', response: ['Domgasse 5'], expected: true },
@@ -37,7 +31,6 @@ describe('Address Lookuper with Spy', () => {
       const httpClient = assertType<HttpClient>({
         get: () => scheduled([response], asyncScheduler),
       });
-
       const lookuper = setup(httpClient);
 
       lookuper.lookup(query).subscribe((isValid) => {
@@ -52,7 +45,7 @@ describe('Address Lookuper with Spy', () => {
     const httpClient = { get: jest.fn() };
     httpClient.get.mockReturnValue(of([]));
 
-    const lookuper = setup(httpClient);
+    const lookuper = setup(assertType<HttpClient>(httpClient));
     lookuper.lookup('Domgasse 5');
 
     expect(httpClient.get).toHaveBeenCalledWith(
@@ -101,7 +94,7 @@ describe('Address Lookuper with Spy', () => {
       get: jest.fn<Observable<undefined[]>, [string, { params: HttpParams }]>(),
     };
     httpClient.get.mockReturnValue(of([]));
-    const lookuper = setup(httpClient);
+    const lookuper = setup(assertType<HttpClient>(httpClient));
     lookuper.lookup('Domgasse 5');
 
     const [url, { params }] = httpClient.get.mock.calls[0];
